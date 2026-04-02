@@ -1,18 +1,10 @@
 ﻿<div align="center">
 
-```
-             
-      
-                   
-                  
-                 
-                         
-                         P A T H
-```
-
-# MutationPath  Viral Evolution Simulator
+# MutationPath — Viral Evolution Simulator
 
 **Watch viruses evolve in real time. Branch by branch. Mutation by mutation.**
+
+<br/>
 
 [![React](https://img.shields.io/badge/React-19-61dafb?style=flat-square&logo=react&logoColor=white)](https://react.dev)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.6-3178c6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
@@ -25,11 +17,11 @@
 
 <br/>
 
-> *"Viruses do not evolve to kill. They evolve to survive. MutationPath lets you watch that story unfold in real time."*
+*"Viruses do not evolve to kill. They evolve to survive. MutationPath lets you watch that story unfold in real time."*
 
 <br/>
 
-[GitHub](https://github.com/chouaibhakim76-ui/MutationPath)  [LinkedIn](https://www.linkedin.com/in/hakim-chouaib/)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-hakim--chouaib-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/hakim-chouaib/)
 
 </div>
 
@@ -313,9 +305,8 @@ MIT  see [LICENSE](./LICENSE) for full terms.
 
 <div align="center">
 
-Built by **Hakim Chouaib**  Future Health Informatics Expert
+Built by **Hakim Chouaib** — Future Health Informatics Expert
 
-[![GitHub](https://img.shields.io/badge/GitHub-chouaibhakim76--ui-181717?style=flat-square&logo=github)](https://github.com/chouaibhakim76-ui)
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-hakim--chouaib-0A66C2?style=flat-square&logo=linkedin)](https://www.linkedin.com/in/hakim-chouaib/)
 
 *Built at the intersection of biology, data science, and visual engineering.*
