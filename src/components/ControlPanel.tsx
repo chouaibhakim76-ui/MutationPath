@@ -44,7 +44,7 @@ export default function ControlPanel({
   };
 
   return (
-    <div className="flex flex-col gap-5 h-full overflow-y-auto pr-2 custom-scrollbar">
+    <div className="flex flex-col gap-5 overflow-y-auto pr-2 custom-scrollbar">
       {/* Virus selector */}
       <div>
         <h3 className="font-display text-sm font-semibold tracking-wider mb-3 text-text-secondary">

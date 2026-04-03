@@ -20,6 +20,7 @@ export default function MutationTree({
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const zoomRef = useRef<d3.ZoomBehavior<SVGSVGElement, unknown> | null>(null);
+  const userInteractedRef = useRef(false);
   const [tooltip, setTooltip] = useState<{
     strain: Strain;
     x: number;
@@ -87,14 +88,19 @@ export default function MutationTree({
         .scaleExtent([0.05, 10])
         .on('zoom', (event) => {
           g.attr('transform', event.transform);
+          // Mark user-initiated interactions (sourceEvent is null for programmatic calls)
+          if (event.sourceEvent) {
+            userInteractedRef.current = true;
+          }
         });
       svg.call(zoom);
       zoomRef.current = zoom;
     }
 
     // Auto-fit: ROOT anchored at TOP-CENTER, scale based on HEIGHT so tree grows DOWNWARD
+    // Skip if user has manually panned/zoomed — don't hijack their viewport
     const zoom = zoomRef.current;
-    if (zoom) {
+    if (zoom && !userInteractedRef.current) {
       let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
       nodes.forEach((d: any) => {
         minX = Math.min(minX, d.x);
@@ -120,10 +126,11 @@ export default function MutationTree({
       );
     }
 
-    // === GENERATION GUIDE LINES (faint horizontal lines per depth) ===
+    // === GENERATION GUIDE LINES — subtle depth markers ===
     const depthSet = new Set<number>();
     nodes.forEach((d: any) => depthSet.add(d.y));
     const depths = Array.from(depthSet).sort((a, b) => a - b);
+    const maxDepthIdx = depths.length - 1;
 
     const guideSelection = g.selectAll<SVGLineElement, number>('.gen-guide').data(depths);
     guideSelection.exit().remove();
@@ -134,20 +141,25 @@ export default function MutationTree({
       .attr('x1', (d: any) => {
         let min = Infinity;
         nodes.forEach((n: any) => { if (n.y === d) min = Math.min(min, n.x); });
-        return min - 30;
+        return min - 60;
       })
       .attr('x2', (d: any) => {
         let max = -Infinity;
         nodes.forEach((n: any) => { if (n.y === d) max = Math.max(max, n.x); });
-        return max + 30;
+        return max + 60;
       })
       .attr('y1', (d) => d)
       .attr('y2', (d) => d)
-      .attr('stroke', 'rgba(255,255,255,0.025)')
+      .attr('stroke', (_d: any, i: number) => {
+        const progress = maxDepthIdx > 0 ? i / maxDepthIdx : 0;
+        if (progress < 0.33) return 'rgba(0,240,255,0.04)';
+        if (progress < 0.66) return 'rgba(57,255,20,0.04)';
+        return 'rgba(168,85,247,0.04)';
+      })
       .attr('stroke-width', 1)
-      .attr('stroke-dasharray', '4 8');
+      .attr('stroke-dasharray', '3 10');
 
-    // === LINKS — smooth S-curve bezier, like real phylogenetic trees ===
+    // === LINKS — organic S-curve bezier with depth-aware styling ===
     const linkSelection = g.selectAll<SVGPathElement, any>('.tree-link').data(links, (d: any) => {
       return `${d.source.data.data.id}-${d.target.data.data.id}`;
     });
@@ -163,41 +175,49 @@ export default function MutationTree({
         return `M${sx},${sy}L${sx},${sy}`;
       })
       .attr('fill', 'none')
+      .attr('stroke-linecap', 'round')
       .attr('opacity', 0);
 
     linkEnter
       .merge(linkSelection as any)
       .transition()
-      .duration(700)
+      .duration(800)
       .ease(d3.easeCubicInOut)
       .attr('d', (d: any) => {
         const sx = d.source.x, sy = d.source.y;
         const tx = d.target.x, ty = d.target.y;
-        // Nextstrain-style: vertical drop then horizontal, with smooth S-curve
-        const my = sy + (ty - sy) * 0.5;
-        return `M${sx},${sy}C${sx},${my} ${tx},${my} ${tx},${ty}`;
+        // Elegant organic S-curve: control points at 35% and 65% vertically
+        const cp1y = sy + (ty - sy) * 0.38;
+        const cp2y = sy + (ty - sy) * 0.62;
+        return `M${sx},${sy}C${sx},${cp1y} ${tx},${cp2y} ${tx},${ty}`;
       })
       .attr('stroke', (d: any) => {
         const st = d.target.data.data as Strain;
         if (highlightedLineage.length > 0) {
-          return highlightedLineage.includes(st.id) ? getNodeColor(st) : '#111';
+          return highlightedLineage.includes(st.id) ? getNodeColor(st) : 'rgba(20,20,35,0.9)';
         }
         return getNodeColor(st);
       })
       .attr('stroke-width', (d: any) => {
         const target = d.target.data.data as Strain;
-        return target.isExtinct ? 0.9 : 1.8;
+        if (target.isExtinct) return 0.8;
+        // Thicker links for high-fitness targets — gives visual weight to dominant lineages
+        const fitness = target.fitness?.overall ?? 0.5;
+        return 1.2 + fitness * 1.6;
       })
       .attr('stroke-dasharray', (d: any) => {
         const target = d.target.data.data as Strain;
-        return target.isExtinct ? '3 5' : 'none';
+        return target.isExtinct ? '2 6' : 'none';
       })
       .attr('opacity', (d: any) => {
         const st = d.target.data.data as Strain;
         if (highlightedLineage.length > 0) {
-          return highlightedLineage.includes(st.id) ? 0.9 : 0.06;
+          return highlightedLineage.includes(st.id) ? 0.95 : 0.04;
         }
-        return st.isExtinct ? 0.22 : 0.65;
+        if (st.isExtinct) return 0.18;
+        // Deeper nodes slightly more vivid
+        const depth = d.target.depth ?? 1;
+        return Math.min(0.55 + depth * 0.03, 0.82);
       });
 
     // === NODES ===
@@ -215,16 +235,37 @@ export default function MutationTree({
       .attr('opacity', 0)
       .style('cursor', 'pointer');
 
-    // Outer glow ring
+    // Ambient outer halo (very diffuse, large)
+    nodeEnter
+      .filter((d: any) => !(d.data.data as Strain).isExtinct)
+      .append('circle')
+      .attr('class', 'node-halo')
+      .attr('r', (d: any) => getNodeRadius(d.data.data) * 5)
+      .attr('fill', (d: any) => getNodeColor(d.data.data))
+      .attr('opacity', 0.04);
+
+    // Mid glow ring
     nodeEnter
       .append('circle')
       .attr('class', 'node-glow')
-      .attr('r', (d: any) => getNodeRadius(d.data.data) * 2.8)
+      .attr('r', (d: any) => getNodeRadius(d.data.data) * 2.4)
       .attr('fill', (d: any) => {
         const st = d.data.data as Strain;
         return st.isExtinct ? 'transparent' : getNodeColor(st);
       })
-      .attr('opacity', 0.07);
+      .attr('opacity', 0.09);
+
+    // Outer ring border (colored, thin) — gives depth
+    nodeEnter
+      .filter((d: any) => !(d.data.data as Strain).isExtinct)
+      .append('circle')
+      .attr('class', 'node-ring')
+      .attr('r', (d: any) => getNodeRadius(d.data.data) * 1.55)
+      .attr('fill', 'none')
+      .attr('stroke', (d: any) => getNodeColor(d.data.data))
+      .attr('stroke-width', 0.7)
+      .attr('stroke-opacity', 0.35)
+      .attr('opacity', 0);
 
     // Main node circle
     nodeEnter
@@ -238,22 +279,34 @@ export default function MutationTree({
       .attr('stroke', (d: any) => {
         const st = d.data.data as Strain;
         if (st.isExtinct) return '#4a4a6e';
-        return st.parentId === null ? getNodeColor(st) : 'rgba(255,255,255,0.12)';
+        return st.parentId === null ? 'rgba(255,255,255,0.6)' : 'rgba(255,255,255,0.18)';
       })
       .attr('stroke-width', (d: any) => {
         const st = d.data.data as Strain;
-        return st.isExtinct ? 1.5 : st.parentId === null ? 2.5 : 1;
+        return st.isExtinct ? 1.5 : st.parentId === null ? 2 : 0.8;
       })
       .attr('stroke-opacity', 1);
 
-    // Inner specular shine for live nodes (3D sphere effect)
+    // Inner specular shine — glassy sphere highlight
     nodeEnter
       .filter((d: any) => !(d.data.data as Strain).isExtinct)
       .append('circle')
       .attr('class', 'node-shine')
-      .attr('cx', -1.2).attr('cy', -1.2)
+      .attr('cx', (d: any) => -(getNodeRadius(d.data.data) * 0.22))
+      .attr('cy', (d: any) => -(getNodeRadius(d.data.data) * 0.22))
       .attr('r', 0)
-      .attr('fill', 'rgba(255,255,255,0.42)')
+      .attr('fill', 'rgba(255,255,255,0.5)')
+      .attr('pointer-events', 'none');
+
+    // Secondary bottom-right shadow spot
+    nodeEnter
+      .filter((d: any) => !(d.data.data as Strain).isExtinct)
+      .append('circle')
+      .attr('class', 'node-shadow-spot')
+      .attr('cx', (d: any) => (getNodeRadius(d.data.data) * 0.28))
+      .attr('cy', (d: any) => (getNodeRadius(d.data.data) * 0.28))
+      .attr('r', 0)
+      .attr('fill', 'rgba(0,0,0,0.35)')
       .attr('pointer-events', 'none');
 
     // Extinct cross-hair lines (X marker)
@@ -261,13 +314,13 @@ export default function MutationTree({
       .filter((d: any) => (d.data.data as Strain).isExtinct)
       .append('line').attr('class', 'extinct-x1')
       .attr('x1', -3.5).attr('y1', -3.5).attr('x2', 3.5).attr('y2', 3.5)
-      .attr('stroke', '#5a5a80').attr('stroke-width', 1.4).attr('stroke-linecap', 'round').attr('opacity', 0);
+      .attr('stroke', '#6a6a9e').attr('stroke-width', 1.2).attr('stroke-linecap', 'round').attr('opacity', 0);
 
     nodeEnter
       .filter((d: any) => (d.data.data as Strain).isExtinct)
       .append('line').attr('class', 'extinct-x2')
       .attr('x1', 3.5).attr('y1', -3.5).attr('x2', -3.5).attr('y2', 3.5)
-      .attr('stroke', '#5a5a80').attr('stroke-width', 1.4).attr('stroke-linecap', 'round').attr('opacity', 0);
+      .attr('stroke', '#6a6a9e').attr('stroke-width', 1.2).attr('stroke-linecap', 'round').attr('opacity', 0);
 
     // Events
     nodeEnter
@@ -279,12 +332,21 @@ export default function MutationTree({
         });
         d3.select(this).select('.node-main')
           .transition().duration(120)
-          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 1.8)
+          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 1.75)
           .attr('filter', 'url(#node-glow-strong)');
         d3.select(this).select('.node-glow')
           .transition().duration(120)
-          .attr('opacity', 0.38)
-          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 4);
+          .attr('opacity', 0.32)
+          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 3.8);
+        d3.select(this).select('.node-ring')
+          .transition().duration(120)
+          .attr('opacity', 0.75)
+          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 2.1)
+          .attr('stroke-width', 1.2);
+        d3.select(this).select('.node-halo')
+          .transition().duration(200)
+          .attr('opacity', 0.09)
+          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 7);
       })
       .on('mousemove', function (event: MouseEvent, d: any) {
         setTooltip({
@@ -300,15 +362,18 @@ export default function MutationTree({
           .attr('r', (dd: any) => getNodeRadius(dd.data.data))
           .attr('filter', (dd: any) => {
             const s = dd.data.data as Strain;
-            return s.parentId === null ? 'url(#node-glow-strong)' : '';
+            return s.parentId === null ? 'url(#node-glow-root)' : 'url(#node-glow-soft)';
           });
         d3.select(this).select('.node-glow')
           .transition().duration(300)
           .attr('opacity', (dd: any) => {
             const s = dd.data.data as Strain;
-            return s.isExtinct ? 0 : s.parentId === null ? 0.28 : 0.12;
+            return s.isExtinct ? 0 : s.parentId === null ? 0.22 : 0.09;
           })
-          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 2.8);
+          .attr('r', (dd: any) => getNodeRadius(dd.data.data) * 2.4);
+        d3.select(this).select('.node-ring')
+          .transition().duration(300)
+          .attr('opacity', 1);
       })
       .on('click', function (_event: MouseEvent, d: any) {
         onNodeClick(d.data.data.id);
@@ -325,16 +390,16 @@ export default function MutationTree({
       .attr('opacity', (d: any) => {
         const st = d.data.data as Strain;
         if (highlightedLineage.length > 0) {
-          return highlightedLineage.includes(st.id) ? 1 : 0.1;
+          return highlightedLineage.includes(st.id) ? 1 : 0.08;
         }
-        return st.isExtinct ? 0.4 : 1;
+        return st.isExtinct ? 0.35 : 1;
       });
 
     nodeMerge
       .select('.node-main')
       .transition()
       .duration(600)
-      .ease(d3.easeBackOut.overshoot(1.5))
+      .ease(d3.easeBackOut.overshoot(1.4))
       .attr('r', (d: any) => getNodeRadius(d.data.data))
       .attr('fill', (d: any) => {
         const st = d.data.data as Strain;
@@ -343,56 +408,96 @@ export default function MutationTree({
       .attr('stroke', (d: any) => {
         const st = d.data.data as Strain;
         if (st.isExtinct) return '#4a4a6e';
-        return st.parentId === null ? getNodeColor(st) : 'rgba(255,255,255,0.12)';
+        return st.parentId === null ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.2)';
       })
       .attr('stroke-width', (d: any) => {
         const st = d.data.data as Strain;
-        return st.isExtinct ? 1.5 : st.parentId === null ? 2.5 : 1;
+        return st.isExtinct ? 1.2 : st.parentId === null ? 2 : 0.8;
       })
       .attr('stroke-opacity', 1)
       .attr('filter', (d: any) => {
         const st = d.data.data as Strain;
-        if (st.parentId === null) return 'url(#node-glow-strong)';
+        if (st.parentId === null) return 'url(#node-glow-root)';
         if (st.isExtinct) return '';
         return 'url(#node-glow-soft)';
       });
 
     nodeMerge
-      .select('.node-shine')
-      .transition().duration(600)
-      .attr('r', (d: any) => {
+      .select('.node-ring')
+      .transition().duration(700)
+      .attr('r', (d: any) => getNodeRadius(d.data.data) * 1.55)
+      .attr('stroke', (d: any) => getNodeColor(d.data.data))
+      .attr('opacity', (d: any) => {
         const st = d.data.data as Strain;
-        if (st.isExtinct || st.parentId === null) return 0;
-        return getNodeRadius(st) * 0.3;
+        if (highlightedLineage.length > 0) return highlightedLineage.includes(st.id) ? 0.55 : 0;
+        return st.parentId === null ? 0.6 : 0.3;
       });
 
-    nodeMerge.select('.extinct-x1').transition().duration(500).attr('opacity', (d: any) => {
-      const st = d.data.data as Strain;
-      return st.isExtinct ? 0.7 : 0;
-    });
-    nodeMerge.select('.extinct-x2').transition().duration(500).attr('opacity', (d: any) => {
-      const st = d.data.data as Strain;
-      return st.isExtinct ? 0.7 : 0;
-    });
+    nodeMerge
+      .select('.node-shine')
+      .transition().duration(600)
+      .attr('cx', (d: any) => -(getNodeRadius(d.data.data) * 0.22))
+      .attr('cy', (d: any) => -(getNodeRadius(d.data.data) * 0.22))
+      .attr('r', (d: any) => {
+        const st = d.data.data as Strain;
+        if (st.isExtinct) return 0;
+        return getNodeRadius(st) * (st.parentId === null ? 0.28 : 0.32);
+      });
+
+    nodeMerge
+      .select('.node-shadow-spot')
+      .transition().duration(600)
+      .attr('cx', (d: any) => (getNodeRadius(d.data.data) * 0.28))
+      .attr('cy', (d: any) => (getNodeRadius(d.data.data) * 0.28))
+      .attr('r', (d: any) => {
+        const st = d.data.data as Strain;
+        if (st.isExtinct) return 0;
+        return getNodeRadius(st) * 0.38;
+      });
+
+    nodeMerge
+      .select('.node-halo')
+      .transition().duration(800)
+      .attr('r', (d: any) => getNodeRadius(d.data.data) * 5)
+      .attr('opacity', (d: any) => {
+        const st = d.data.data as Strain;
+        return st.parentId === null ? 0.06 : 0.025;
+      });
 
     nodeMerge
       .select('.node-glow')
       .transition()
       .duration(600)
-      .attr('r', (d: any) => getNodeRadius(d.data.data) * 2.8)
+      .attr('r', (d: any) => getNodeRadius(d.data.data) * 2.4)
       .attr('fill', (d: any) => {
         const st = d.data.data as Strain;
         return st.isExtinct ? 'transparent' : getNodeColor(st);
       })
       .attr('opacity', (d: any) => {
         const st = d.data.data as Strain;
-        return st.isExtinct ? 0 : st.parentId === null ? 0.28 : 0.12;
+        return st.isExtinct ? 0 : st.parentId === null ? 0.22 : 0.09;
       });
+
+    nodeMerge.select('.extinct-x1').transition().duration(500).attr('opacity', (d: any) => {
+      const st = d.data.data as Strain;
+      return st.isExtinct ? 0.6 : 0;
+    });
+    nodeMerge.select('.extinct-x2').transition().duration(500).attr('opacity', (d: any) => {
+      const st = d.data.data as Strain;
+      return st.isExtinct ? 0.6 : 0;
+    });
   }, [allStrains, currentGeneration, highlightedLineage, onNodeClick]);
 
   useEffect(() => {
     render();
   }, [render]);
+
+  // Reset user-interaction flag when simulation resets (allStrains cleared)
+  useEffect(() => {
+    if (allStrains.size === 0) {
+      userInteractedRef.current = false;
+    }
+  }, [allStrains.size]);
 
   // Resize observer
   useEffect(() => {
@@ -405,17 +510,20 @@ export default function MutationTree({
 
   const handleZoomIn = () => {
     if (!svgRef.current || !zoomRef.current) return;
+    userInteractedRef.current = true;
     d3.select<SVGSVGElement, unknown>(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, 1.3);
   };
 
   const handleZoomOut = () => {
     if (!svgRef.current || !zoomRef.current) return;
+    userInteractedRef.current = true;
     d3.select<SVGSVGElement, unknown>(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, 0.7);
   };
 
   const handleZoomReset = () => {
     if (!svgRef.current || !zoomRef.current) return;
-    render(); // just re-render to auto-fit
+    userInteractedRef.current = false; // clear flag so auto-fit runs
+    render();
   };
 
   return (
@@ -423,25 +531,50 @@ export default function MutationTree({
       ref={containerRef}
       className="relative w-full h-full rounded-2xl overflow-hidden"
       style={{
-        background: 'linear-gradient(135deg, rgba(4,4,14,0.95) 0%, rgba(6,6,20,0.9) 100%)',
-        border: '1px solid rgba(255,255,255,0.06)',
-        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.04)',
+        background: 'radial-gradient(ellipse at 50% 0%, rgba(0,240,255,0.04) 0%, rgba(4,4,18,0.97) 60%), linear-gradient(180deg, rgba(4,4,16,0.98) 0%, rgba(3,3,12,0.99) 100%)',
+        border: '1px solid rgba(255,255,255,0.07)',
+        boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -1px 0 rgba(0,0,0,0.4)',
       }}
     >
+      {/* Dot-grid background */}
+      <svg
+        className="absolute inset-0 w-full h-full pointer-events-none"
+        style={{ opacity: 0.18 }}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <defs>
+          <pattern id="tree-dots" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.7" fill="rgba(255,255,255,0.25)" />
+          </pattern>
+        </defs>
+        <rect width="100%" height="100%" fill="url(#tree-dots)" />
+      </svg>
+
       {/* SVG filters */}
       <svg width="0" height="0" className="absolute">
         <defs>
-          <filter id="node-glow-strong" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="5" result="coloredBlur" />
+          <filter id="node-glow-strong" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="6" result="blur1" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="2.5" result="blur2" />
             <feMerge>
-              <feMergeNode in="coloredBlur" />
+              <feMergeNode in="blur1" />
+              <feMergeNode in="blur2" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>
-          <filter id="node-glow-soft" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur stdDeviation="2.5" result="blur" />
+          <filter id="node-glow-soft" x="-70%" y="-70%" width="240%" height="240%">
+            <feGaussianBlur stdDeviation="3" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="node-glow-root" x="-120%" y="-120%" width="340%" height="340%">
+            <feGaussianBlur stdDeviation="9" result="outerBlur" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3" result="innerBlur" />
+            <feMerge>
+              <feMergeNode in="outerBlur" />
+              <feMergeNode in="innerBlur" />
               <feMergeNode in="SourceGraphic" />
             </feMerge>
           </filter>

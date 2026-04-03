@@ -141,19 +141,21 @@ export default function Simulator() {
         </div>
 
         {/* Main layout */}
-        <div className="flex flex-col lg:flex-row gap-6" style={{ height: '700px' }}>
+        <div className="flex flex-col lg:flex-row gap-6 lg:h-[740px]">
           {/* Left panel - Controls */}
-          <div className="w-full lg:w-[320px] flex-shrink-0 flex flex-col gap-4">
-            <ControlPanel
-              config={config}
-              onConfigChange={setConfig}
-              onStart={handleStart}
-              onPause={handlePause}
-              onReset={handleReset}
-              onExport={handleExport}
-              isRunning={isRunning}
-              isPaused={isPaused}
-            />
+          <div className="w-full lg:w-[320px] flex-shrink-0 flex flex-col gap-4 lg:min-h-0 lg:overflow-hidden">
+            <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:custom-scrollbar lg:pr-1">
+              <ControlPanel
+                config={config}
+                onConfigChange={setConfig}
+                onStart={handleStart}
+                onPause={handlePause}
+                onReset={handleReset}
+                onExport={handleExport}
+                isRunning={isRunning}
+                isPaused={isPaused}
+              />
+            </div>
 
             {/* Stats */}
             <StatsPanel
@@ -164,7 +166,7 @@ export default function Simulator() {
           </div>
 
           {/* Right panel - Tree */}
-          <div className="flex-1 min-w-0 glass rounded-xl overflow-hidden">
+          <div className="w-full h-[500px] lg:flex-1 lg:h-auto min-w-0 glass rounded-xl overflow-hidden">
             <MutationTree
               allStrains={allStrains}
               currentGeneration={currentGeneration}
