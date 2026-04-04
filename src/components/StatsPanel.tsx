@@ -58,11 +58,11 @@ export default function StatsPanel({ stats, isRunning, maxGenerations }: Props) 
 
   return (
     <div
-      className="rounded-xl p-4"
+      className="rounded-2xl p-4 glass-deep gloss-overlay"
       style={{
-        background: 'rgba(8,8,20,0.6)',
-        backdropFilter: 'blur(16px)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'linear-gradient(145deg, rgba(0,240,255,0.04) 0%, rgba(8,8,22,0.8) 40%, rgba(57,255,20,0.03) 100%)',
+        border: '1px solid rgba(0,240,255,0.1)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.5), 0 0 60px rgba(0,240,255,0.04), inset 0 1px 0 rgba(255,255,255,0.1)',
       }}
     >
       {/* Status header */}
@@ -88,24 +88,20 @@ export default function StatsPanel({ stats, isRunning, maxGenerations }: Props) 
       </div>
 
       {/* Progress bar */}
-      <div className="h-[2px] rounded-full mb-4 overflow-hidden" style={{ background: 'rgba(255,255,255,0.04)' }}>
+      <div className="neon-progress-track mb-4">
         <div
-          className="h-full rounded-full transition-all duration-300"
-          style={{
-            width: `${(stats.currentGeneration / maxGenerations) * 100}%`,
-            background: 'linear-gradient(90deg, #00f0ff, #39ff14)',
-            boxShadow: '0 0 8px rgba(0,240,255,0.3)',
-          }}
+          className="neon-progress-fill"
+          style={{ width: `${(stats.currentGeneration / maxGenerations) * 100}%` }}
         />
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-1">
         {items.map((item) => (
-          <div key={item.label} className="flex items-center justify-between">
-            <span className="text-[11px] text-text-secondary tracking-wide">{item.label}</span>
+          <div key={item.label} className="stat-item-glow flex items-center justify-between">
+            <span className="text-[11px] text-text-secondary/70 tracking-wide">{item.label}</span>
             <span
               className="font-mono text-sm font-semibold"
-              style={{ color: item.color }}
+              style={{ color: item.color, textShadow: `0 0 12px ${item.color}60` }}
             >
               {typeof item.value === 'number' ? (
                 <AnimatedNumber value={item.value} />

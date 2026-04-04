@@ -1,5 +1,5 @@
-import { useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
 
 export default function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -133,11 +133,38 @@ export default function Hero() {
   // Words that get special gradient coloring (index-based)
   const gradientWordIdx = 1; // "rendered"
 
+  // 3D tilt for right panel using mouse position
+  const panelRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const springX = useSpring(mouseX, { stiffness: 120, damping: 18 });
+  const springY = useSpring(mouseY, { stiffness: 120, damping: 18 });
+  const rotateX = useTransform(springY, [-0.5, 0.5], [12, -12]);
+  const rotateY = useTransform(springX, [-0.5, 0.5], [-14, 14]);
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!panelRef.current) return;
+    const rect = panelRef.current.getBoundingClientRect();
+    mouseX.set((e.clientX - rect.left) / rect.width - 0.5);
+    mouseY.set((e.clientY - rect.top) / rect.height - 0.5);
+  }, [mouseX, mouseY]);
+
+  const handleMouseLeave = useCallback(() => {
+    mouseX.set(0);
+    mouseY.set(0);
+  }, [mouseX, mouseY]);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <canvas
         ref={canvasRef}
         className="absolute inset-0 z-0"
+      />
+
+      {/* Aurora ambient layer */}
+      <div
+        className="absolute inset-0 z-[1] aurora-bg"
+        style={{ opacity: 0.8 }}
       />
 
       {/* Radial gradient overlay */}
@@ -241,10 +268,10 @@ export default function Hero() {
           >
             <a
               href="#simulator"
-              className="group relative px-9 py-4 rounded-full font-display font-black text-sm tracking-widest text-void overflow-hidden btn-3d"
+              className="group relative px-9 py-4 rounded-full font-display font-black text-sm tracking-widest text-void overflow-hidden btn-3d btn-glossy"
               style={{
                 background: 'linear-gradient(135deg, #00f0ff 0%, #39ff14 52%, #a855f7 100%)',
-                boxShadow: '0 6px 32px rgba(0,240,255,0.4), 0 2px 12px rgba(57,255,20,0.3)',
+                boxShadow: '0 6px 32px rgba(0,240,255,0.4), 0 2px 12px rgba(57,255,20,0.3), inset 0 1px 0 rgba(255,255,255,0.4)',
               }}
             >
               <span className="relative z-10 flex items-center gap-2.5">
@@ -254,11 +281,11 @@ export default function Hero() {
             </a>
             <a
               href="#science"
-              className="px-9 py-4 rounded-full font-display font-semibold text-sm tracking-wider text-text-secondary hover:text-white transition-colors duration-300"
+              className="px-9 py-4 rounded-full font-display font-semibold text-sm tracking-wider text-text-secondary hover:text-white transition-colors duration-300 gloss-overlay"
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.1)',
-                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.06)',
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid rgba(255,255,255,0.12)',
+                boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.08), 0 4px 16px rgba(0,0,0,0.3)',
               }}
             >
               Learn the Science
@@ -266,19 +293,33 @@ export default function Hero() {
           </motion.div>
         </div>
 
-        {/* Right - Mini tree preview */}
+        {/* Right - Mini tree preview with 3D tilt */}
         <motion.div
-          className="flex-1 hidden lg:flex justify-center"
+          className="flex-1 hidden lg:flex justify-center perspective-deep"
           initial={{ opacity: 0, scale: 0.85 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 1.5, duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="relative w-80 h-80">
-            {/* Glow rings */}
+          <motion.div
+            ref={panelRef}
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+            style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
+            className="relative w-80 h-80 cursor-none"
+          >
+            {/* Glass panel background */}
             <div
-              className="absolute inset-0 rounded-full"
+              className="absolute inset-0 rounded-3xl glass-deep scan-active"
               style={{
-                background: 'radial-gradient(circle at 50% 50%, rgba(0,240,255,0.08) 0%, transparent 70%)',
+                border: '1px solid rgba(0,240,255,0.12)',
+                boxShadow: '0 0 60px rgba(0,240,255,0.08), inset 0 1px 0 rgba(255,255,255,0.12)',
+              }}
+            />
+            {/* Outer glow halo */}
+            <div
+              className="absolute inset-[-30px] rounded-full pointer-events-none"
+              style={{
+                background: 'radial-gradient(circle at 50% 50%, rgba(0,240,255,0.1) 0%, transparent 70%)',
               }}
             />
             <div
@@ -392,7 +433,7 @@ export default function Hero() {
               <text x="279" y="183" fill="rgba(255,255,255,0.14)" fontSize="8" fontFamily="monospace">G2</text>
               <text x="279" y="253" fill="rgba(255,255,255,0.14)" fontSize="8" fontFamily="monospace">G3</text>
             </svg>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
 

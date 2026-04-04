@@ -47,8 +47,9 @@ export default function ControlPanel({
     <div className="flex flex-col gap-5 overflow-y-auto pr-2 custom-scrollbar">
       {/* Virus selector */}
       <div>
-        <h3 className="font-display text-sm font-semibold tracking-wider mb-3 text-text-secondary">
-          SELECT VIRUS
+        <h3 className="font-mono text-[10px] tracking-[0.25em] mb-3 flex items-center gap-2" style={{ color: 'rgba(0,240,255,0.7)' }}>
+          <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" style={{ boxShadow: '0 0 6px #00f0ff' }} />
+          SELECT PATHOGEN
         </h3>
         <div className="grid grid-cols-1 gap-2">
           {VIRUS_TYPES.map((type) => (
@@ -241,10 +242,10 @@ export default function ControlPanel({
         {!isRunning ? (
           <button
             onClick={onStart}
-            className="w-full py-4 rounded-2xl font-display font-black text-sm tracking-[0.22em] text-void btn-3d"
+            className="w-full py-4 rounded-2xl font-display font-black text-sm tracking-[0.22em] text-void btn-3d btn-glossy"
             style={{
               background: 'linear-gradient(135deg, #00f0ff 0%, #39ff14 52%, #a855f7 100%)',
-              boxShadow: '0 6px 32px rgba(0,240,255,0.35), 0 2px 12px rgba(57,255,20,0.25), 0 0 0 1px rgba(255,255,255,0.15) inset',
+              boxShadow: '0 6px 32px rgba(0,240,255,0.4), 0 2px 12px rgba(57,255,20,0.3), inset 0 1px 0 rgba(255,255,255,0.45)',
             }}
           >
             <span className="relative z-10 flex items-center justify-center gap-2.5">

@@ -105,13 +105,15 @@ export default function WhatIsMutationPath() {
             initial="hidden"
             whileInView="visible"
             viewport={{ once: false, margin: '-50px' }}
-            className="group relative rounded-2xl overflow-hidden transition-all duration-500"
+            className="group relative rounded-2xl overflow-hidden transition-all duration-500 gloss-overlay"
             style={{
-              background: `linear-gradient(160deg, ${concept.color}0e 0%, rgba(255,255,255,0.02) 60%, rgba(0,0,0,0.1) 100%)`,
-              border: `1px solid ${concept.color}22`,
-              boxShadow: `0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 ${concept.color}18`,
+              background: `linear-gradient(160deg, ${concept.color}0e 0%, rgba(20,20,40,0.7) 60%, rgba(0,0,0,0.3) 100%)`,
+              border: `1px solid ${concept.color}28`,
+              borderTopColor: `${concept.color}45`,
+              backdropFilter: 'blur(20px)',
+              boxShadow: `0 8px 32px rgba(0,0,0,0.45), inset 0 1px 0 ${concept.color}20`,
             }}
-            whileHover={{ y: -12, boxShadow: `0 24px 60px rgba(0,0,0,0.5), 0 0 40px ${concept.color}18, inset 0 1px 0 ${concept.color}28` }}
+            whileHover={{ y: -12, boxShadow: `0 28px 70px rgba(0,0,0,0.55), 0 0 50px ${concept.color}18, inset 0 1px 0 ${concept.color}35` }}
           >
             {/* Top gradient border */}
             <div

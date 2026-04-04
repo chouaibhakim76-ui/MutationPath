@@ -16,18 +16,19 @@ export default function VirusCard({ virusType, selected, onSelect }: Props) {
   return (
     <motion.button
       onClick={() => onSelect(virusType)}
-      className="relative w-full text-left rounded-xl transition-all duration-300 group overflow-hidden"
+      className="relative w-full text-left rounded-xl transition-all duration-300 group overflow-hidden gloss-overlay"
       style={{
         background: selected
-          ? `linear-gradient(135deg, ${info.color}14 0%, ${info.color}06 100%)`
-          : 'rgba(255,255,255,0.03)',
-        border: `1px solid ${selected ? `${info.color}40` : 'rgba(255,255,255,0.06)'}`,
+          ? `linear-gradient(135deg, ${info.color}18 0%, ${info.color}06 100%)`
+          : 'linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%)',
+        border: `1px solid ${selected ? `${info.color}50` : 'rgba(255,255,255,0.07)'}`,
+        borderTopColor: selected ? `${info.color}70` : 'rgba(255,255,255,0.12)',
         boxShadow: selected
-          ? `0 0 24px ${info.color}20, 0 4px 16px rgba(0,0,0,0.3), inset 0 1px 0 ${info.color}20`
-          : '0 2px 8px rgba(0,0,0,0.2)',
+          ? `0 0 30px ${info.color}25, 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 ${info.color}25`
+          : '0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06)',
       }}
-      whileHover={{ scale: 1.02, y: -1 }}
-      whileTap={{ scale: 0.98 }}
+      whileHover={{ scale: 1.025, y: -2, boxShadow: `0 12px 32px rgba(0,0,0,0.5), 0 0 20px ${info.color}15` }}
+      whileTap={{ scale: 0.97 }}
     >
       {/* Top sheen line */}
       <div
