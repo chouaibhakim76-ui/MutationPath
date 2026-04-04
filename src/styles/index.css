@@ -418,3 +418,279 @@ p, span, a, li {
 .font-mono {
   line-height: 1.5;
 }
+
+/* ===== DOT GRID BACKGROUND ===== */
+.dot-grid {
+  background-image: radial-gradient(rgba(0,240,255,0.08) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* ===== SECTION AMBIENT GLOW ===== */
+.section-ambient {
+  position: relative;
+}
+.section-ambient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(0,240,255,0.05) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ===== GRADIENT BORDER GLOW (animated) ===== */
+@keyframes gradient-border-spin {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.gradient-border {
+  position: relative;
+  border-radius: inherit;
+}
+.gradient-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(90deg, #00f0ff, #39ff14, #a855f7, #ff1744, #00f0ff);
+  background-size: 300% 300%;
+  animation: gradient-border-spin 4s ease infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* ===== NEON STAT BADGE ===== */
+.neon-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.08em;
+  background: rgba(0,240,255,0.07);
+  border: 1px solid rgba(0,240,255,0.2);
+  color: #00f0ff;
+  box-shadow: 0 0 16px rgba(0,240,255,0.12), inset 0 1px 0 rgba(0,240,255,0.15);
+  white-space: nowrap;
+}
+.neon-badge.green {
+  background: rgba(57,255,20,0.07);
+  border-color: rgba(57,255,20,0.2);
+  color: #39ff14;
+  box-shadow: 0 0 16px rgba(57,255,20,0.12), inset 0 1px 0 rgba(57,255,20,0.15);
+}
+.neon-badge.purple {
+  background: rgba(168,85,247,0.07);
+  border-color: rgba(168,85,247,0.2);
+  color: #a855f7;
+  box-shadow: 0 0 16px rgba(168,85,247,0.12), inset 0 1px 0 rgba(168,85,247,0.15);
+}
+.neon-badge.crimson {
+  background: rgba(255,23,68,0.07);
+  border-color: rgba(255,23,68,0.2);
+  color: #ff1744;
+  box-shadow: 0 0 16px rgba(255,23,68,0.12), inset 0 1px 0 rgba(255,23,68,0.15);
+}
+
+/* ===== SECTION DIVIDER ===== */
+.section-divider {
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(0,240,255,0.3) 30%, rgba(57,255,20,0.3) 70%, transparent 100%);
+  margin: 0;
+  position: relative;
+}
+.section-divider::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: -2px;
+  transform: translateX(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #00f0ff;
+  box-shadow: 0 0 12px #00f0ff, 0 0 24px rgba(0,240,255,0.5);
+}
+
+/* ===== FITNESS BAR ===== */
+.fitness-bar-track {
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.06);
+  overflow: hidden;
+  position: relative;
+}
+.fitness-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.fitness-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(2px);
+  box-shadow: 0 0 6px currentColor;
+}
+
+/* ===== TEXT SHIMMER ===== */
+@keyframes text-shimmer {
+  0%   { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+.text-shimmer {
+  background: linear-gradient(90deg, #00f0ff 0%, #39ff14 35%, #a855f7 60%, #00f0ff 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: text-shimmer 4s linear infinite;
+}
+
+/* ===== ANIMATED TREE NODE PULSE ===== */
+@keyframes tree-node-glow {
+  0%, 100% { filter: drop-shadow(0 0 4px currentColor); opacity: 0.7; }
+  50%       { filter: drop-shadow(0 0 12px currentColor) drop-shadow(0 0 20px currentColor); opacity: 1; }
+}
+.tree-node-animate {
+  animation: tree-node-glow 2s ease-in-out infinite;
+}
+
+/* ===== SCAN LINE OVERLAY ===== */
+.scan-lines::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ===== HERO STAT BADGES ROW ===== */
+.stat-badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+/* ===== GLOWING SECTION TITLE ===== */
+.section-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.section-label::before,
+.section-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  max-width: 48px;
+  background: currentColor;
+  opacity: 0.3;
+}
+
+/* ===== IMPACT CARD NEW STYLE ===== */
+.impact-card {
+  border-radius: 20px;
+  overflow: hidden;
+  position: relative;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+.impact-card:hover {
+  transform: translateY(-6px);
+}
+.impact-card-header {
+  padding: 28px 32px 20px;
+  position: relative;
+}
+.impact-card-body {
+  padding: 20px 32px 28px;
+  background: rgba(0,0,0,0.3);
+  backdrop-filter: blur(12px);
+}
+
+/* ===== MOBILE NAV DRAWER ===== */
+@keyframes slide-down {
+  from { opacity: 0; transform: translateY(-10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.mobile-nav-open {
+  animation: slide-down 0.25s ease forwards;
+}
+
+/* ===== CUSTOM SCROLLBAR UPGRADE ===== */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: #060610;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00f0ff40, #39ff1440);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, #00f0ff80, #39ff1480);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, #00f0ff30, #39ff1430);
+  border-radius: 2px;
+}
+
+/* ===== VIRUS PROFILE BADGE ===== */
+.speed-badge {
+  font-size: 9px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.12em;
+  padding: 3px 8px;
+  border-radius: 6px;
+  text-transform: uppercase;
+}
+
+/* ===== GLOW DIVIDER LINE ===== */
+.glow-line {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,240,255,0.4), rgba(57,255,20,0.4), transparent);
+  position: relative;
+  margin: 0 auto;
+}
+.glow-line::before {
+  content: '';
+  position: absolute;
+  inset: -2px 30%;
+  background: inherit;
+  filter: blur(4px);
+  opacity: 0.6;
+}

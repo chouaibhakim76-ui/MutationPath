@@ -643,18 +643,72 @@ export default function MutationTree({
 
       {/* Empty state */}
       {allStrains.size === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <svg width="48" height="48" viewBox="0 0 48 48" fill="none" className="mx-auto mb-4 opacity-20">
-              <circle cx="24" cy="24" r="20" stroke="#8888a0" strokeWidth="1" strokeDasharray="4 4" />
-              <circle cx="24" cy="24" r="4" fill="#8888a0" opacity="0.3" />
-              <line x1="24" y1="4" x2="24" y2="10" stroke="#8888a0" strokeWidth="0.8" opacity="0.3" />
-              <line x1="24" y1="38" x2="24" y2="44" stroke="#8888a0" strokeWidth="0.8" opacity="0.3" />
-              <line x1="4" y1="24" x2="10" y2="24" stroke="#8888a0" strokeWidth="0.8" opacity="0.3" />
-              <line x1="38" y1="24" x2="44" y2="24" stroke="#8888a0" strokeWidth="0.8" opacity="0.3" />
-            </svg>
-            <p className="font-display text-text-secondary/40 text-xs tracking-wider">
-              SELECT A VIRUS TO BEGIN
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
+          {/* Ambient rings */}
+          <div
+            className="absolute w-64 h-64 rounded-full animate-pulse"
+            style={{
+              background: 'radial-gradient(circle, rgba(0,240,255,0.04) 0%, transparent 70%)',
+              animationDuration: '3s',
+            }}
+          />
+          <div
+            className="absolute w-96 h-96 rounded-full"
+            style={{
+              border: '1px solid rgba(0,240,255,0.06)',
+              borderRadius: '50%',
+              animation: 'spin 20s linear infinite',
+            }}
+          />
+          <div
+            className="absolute w-72 h-72 rounded-full"
+            style={{
+              border: '1px dashed rgba(57,255,20,0.05)',
+              borderRadius: '50%',
+              animation: 'spin 30s linear infinite reverse',
+            }}
+          />
+
+          {/* Center content */}
+          <div className="text-center relative z-10">
+            {/* Mini phylo icon */}
+            <div className="mx-auto mb-5 relative w-16 h-16">
+              <svg viewBox="0 0 64 64" fill="none" className="w-full h-full">
+                <circle cx="32" cy="32" r="28" stroke="rgba(0,240,255,0.1)" strokeWidth="1" strokeDasharray="4 6" />
+                {/* Mini tree */}
+                <line x1="32" y1="48" x2="32" y2="36" stroke="rgba(0,240,255,0.35)" strokeWidth="1.5" />
+                <line x1="32" y1="36" x2="22" y2="26" stroke="rgba(0,240,255,0.28)" strokeWidth="1" />
+                <line x1="32" y1="36" x2="42" y2="26" stroke="rgba(57,255,20,0.28)" strokeWidth="1" />
+                <line x1="22" y1="26" x2="16" y2="18" stroke="rgba(0,240,255,0.2)" strokeWidth="0.8" />
+                <line x1="22" y1="26" x2="26" y2="18" stroke="rgba(255,23,68,0.18)" strokeWidth="0.8" />
+                <line x1="42" y1="26" x2="38" y2="18" stroke="rgba(57,255,20,0.2)" strokeWidth="0.8" />
+                <line x1="42" y1="26" x2="48" y2="18" stroke="rgba(57,255,20,0.2)" strokeWidth="0.8" />
+                <circle cx="32" cy="48" r="4" fill="#00f0ff" opacity="0.7" />
+                <circle cx="32" cy="36" r="2.5" fill="#00f0ff" opacity="0.5" />
+                <circle cx="22" cy="26" r="2" fill="#00f0ff" opacity="0.4" />
+                <circle cx="42" cy="26" r="2" fill="#39ff14" opacity="0.4" />
+                <circle cx="16" cy="18" r="1.5" fill="#00f0ff" opacity="0.3" />
+                <circle cx="26" cy="18" r="1.5" fill="#ff1744" opacity="0.25" />
+                <circle cx="38" cy="18" r="1.5" fill="#39ff14" opacity="0.3" />
+                <circle cx="48" cy="18" r="1.5" fill="#39ff14" opacity="0.3" />
+              </svg>
+              {/* Pulsing dot in center */}
+              <div
+                className="absolute inset-0 flex items-center justify-center"
+                style={{ top: '60%' }}
+              >
+                <div
+                  className="w-2 h-2 rounded-full animate-ping"
+                  style={{ background: '#00f0ff', boxShadow: '0 0 10px #00f0ff', animationDuration: '2s' }}
+                />
+              </div>
+            </div>
+
+            <p className="font-display font-black text-white/20 text-sm tracking-[0.25em] mb-2">
+              READY TO SIMULATE
+            </p>
+            <p className="font-mono text-[10px] text-text-secondary/30 tracking-[0.2em]">
+              SELECT A VIRUS · PRESS START
             </p>
           </div>
         </div>

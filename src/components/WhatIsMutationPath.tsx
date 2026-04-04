@@ -83,11 +83,11 @@ export default function WhatIsMutationPath() {
         viewport={{ once: false, margin: '-100px' }}
         transition={{ duration: 0.8 }}
       >
-        <span className="font-mono text-xs tracking-[0.3em] text-cyan mb-4 block">
+        <div className="section-label text-cyan justify-center mb-4">
           UNDERSTANDING VIRAL EVOLUTION
-        </span>
+        </div>
         <h2 className="font-display text-4xl md:text-5xl font-bold mb-4">
-          What is MutationPath?
+          What is <span className="bio-gradient-text">MutationPath?</span>
         </h2>
         <p className="font-body text-text-secondary max-w-2xl mx-auto text-lg">
           A real-time simulator that shows how viruses evolve through mutation,
@@ -107,25 +107,25 @@ export default function WhatIsMutationPath() {
             viewport={{ once: false, margin: '-50px' }}
             className="group relative rounded-2xl overflow-hidden transition-all duration-500"
             style={{
-              background: `linear-gradient(135deg, ${concept.color}0d 0%, rgba(255,255,255,0.02) 100%)`,
-              border: `1px solid ${concept.color}20`,
-              boxShadow: `0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 ${concept.color}15`,
+              background: `linear-gradient(160deg, ${concept.color}0e 0%, rgba(255,255,255,0.02) 60%, rgba(0,0,0,0.1) 100%)`,
+              border: `1px solid ${concept.color}22`,
+              boxShadow: `0 4px 24px rgba(0,0,0,0.35), inset 0 1px 0 ${concept.color}18`,
             }}
-            whileHover={{ y: -10, boxShadow: `0 16px 48px rgba(0,0,0,0.4), 0 0 32px ${concept.color}15, inset 0 1px 0 ${concept.color}25` }}
+            whileHover={{ y: -12, boxShadow: `0 24px 60px rgba(0,0,0,0.5), 0 0 40px ${concept.color}18, inset 0 1px 0 ${concept.color}28` }}
           >
             {/* Top gradient border */}
             <div
               className="absolute top-0 left-0 right-0 h-[2px]"
               style={{
-                background: `linear-gradient(90deg, transparent, ${concept.color}80, transparent)`,
+                background: `linear-gradient(90deg, transparent, ${concept.color}90, transparent)`,
               }}
             />
 
-            {/* Top sheen */}
+            {/* Corner accent */}
             <div
-              className="absolute top-0 left-0 right-0 h-24 pointer-events-none"
+              className="absolute top-0 right-0 w-16 h-16 pointer-events-none"
               style={{
-                background: `linear-gradient(180deg, ${concept.color}06 0%, transparent 100%)`,
+                background: `radial-gradient(circle at 100% 0%, ${concept.color}12 0%, transparent 70%)`,
               }}
             />
 
@@ -133,25 +133,25 @@ export default function WhatIsMutationPath() {
             <div
               className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"
               style={{
-                background: `radial-gradient(ellipse at 50% 0%, ${concept.color}12 0%, transparent 65%)`,
+                background: `radial-gradient(ellipse at 50% 0%, ${concept.color}16 0%, transparent 65%)`,
               }}
             />
 
             <div className="relative z-10 p-8">
               {/* Icon container */}
               <div
-                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 transition-all duration-300 group-hover:scale-105"
+                className="inline-flex items-center justify-center w-16 h-16 rounded-2xl mb-6 transition-all duration-300 group-hover:scale-110 group-hover:rotate-3"
                 style={{
-                  background: `${concept.color}12`,
-                  border: `1px solid ${concept.color}20`,
-                  boxShadow: `0 0 20px ${concept.color}10`,
+                  background: `${concept.color}14`,
+                  border: `1px solid ${concept.color}25`,
+                  boxShadow: `0 0 24px ${concept.color}14`,
                 }}
               >
                 {concept.icon}
               </div>
 
               <h3
-                className="font-display text-xl font-bold mb-3"
+                className="font-display text-xl font-black mb-3"
                 style={{ color: concept.color }}
               >
                 {concept.title}
@@ -163,8 +163,19 @@ export default function WhatIsMutationPath() {
               {/* Bottom accent */}
               <div
                 className="mt-6 h-px"
-                style={{ background: `linear-gradient(90deg, ${concept.color}30, transparent)` }}
+                style={{ background: `linear-gradient(90deg, ${concept.color}40, transparent)` }}
               />
+
+              {/* Hover read-more arrow */}
+              <div
+                className="mt-4 flex items-center gap-1.5 font-mono text-[10px] tracking-wider opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                style={{ color: concept.color }}
+              >
+                <span>LEARN MORE</span>
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </div>
             </div>
           </motion.div>
         ))}
